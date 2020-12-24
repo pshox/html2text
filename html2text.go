@@ -232,35 +232,6 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		str := subCtx.buf.String()
 		return ctx.emit("*" + str + "*")
 
-	case atom.A:
-		linkText := ""
-		// For simple link element content with single text node only, peek at the link text.
-		if node.FirstChild != nil && node.FirstChild.NextSibling == nil && node.FirstChild.Type == html.TextNode {
-			linkText = node.FirstChild.Data
-		}
-
-		// If image is the only child, take its alt text as the link text.
-		if img := node.FirstChild; img != nil && node.LastChild == img && img.DataAtom == atom.Img {
-			if altText := getAttrVal(img, "alt"); altText != "" {
-				if err := ctx.emit(altText); err != nil {
-					return err
-				}
-			}
-		} else if err := ctx.traverseChildren(node); err != nil {
-			return err
-		}
-
-		hrefLink := ""
-		if attrVal := getAttrVal(node, "href"); attrVal != "" {
-			attrVal = ctx.normalizeHrefLink(attrVal)
-			// Don't print link href if it matches link element content or if the link is empty.
-			if !ctx.options.OmitLinks && attrVal != "" && linkText != attrVal {
-				hrefLink = "( " + attrVal + " )"
-			}
-		}
-
-		return ctx.emit(hrefLink)
-
 	case atom.P, atom.Ul:
 		return ctx.paragraphHandler(node)
 
@@ -320,25 +291,6 @@ func (ctx *textifyTraverseContext) handleTableElement(node *html.Node) error {
 
 		buf := &bytes.Buffer{}
 		table := tablewriter.NewWriter(buf)
-		if ctx.options.PrettyTablesOptions != nil {
-			options := ctx.options.PrettyTablesOptions
-			table.SetAutoFormatHeaders(options.AutoFormatHeader)
-			table.SetAutoWrapText(options.AutoWrapText)
-			table.SetReflowDuringAutoWrap(options.ReflowDuringAutoWrap)
-			table.SetColWidth(options.ColWidth)
-			table.SetColumnSeparator(options.ColumnSeparator)
-			table.SetRowSeparator(options.RowSeparator)
-			table.SetCenterSeparator(options.CenterSeparator)
-			table.SetHeaderAlignment(options.HeaderAlignment)
-			table.SetFooterAlignment(options.FooterAlignment)
-			table.SetAlignment(options.Alignment)
-			table.SetColumnAlignment(options.ColumnAlignment)
-			table.SetNewLine(options.NewLine)
-			table.SetHeaderLine(options.HeaderLine)
-			table.SetRowLine(options.RowLine)
-			table.SetAutoMergeCells(options.AutoMergeCells)
-			table.SetBorders(options.Borders)
-		}
 		table.SetHeader(ctx.tableCtx.header)
 		table.SetFooter(ctx.tableCtx.footer)
 		table.AppendBulk(ctx.tableCtx.body)
