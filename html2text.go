@@ -108,8 +108,9 @@ func FromString(input string, options ...Options) (string, error) {
 }
 
 var (
-	spacingRe = regexp.MustCompile(`[ \r\n\t]+`)
-	newlineRe = regexp.MustCompile(`\n\n+`)
+	spacingRe  = regexp.MustCompile(`[ \r\n\t]+`)
+	newlineRe  = regexp.MustCompile(`\n\n+`)
+	recoveryRe = regexp.MustCompile(`[!^<p>|</p>]`)
 )
 
 // traverseTableCtx holds text-related context.
@@ -353,7 +354,7 @@ func (ctx *textifyTraverseContext) traverse(node *html.Node) error {
 		} else {
 			data = strings.TrimSpace(spacingRe.ReplaceAllString(node.Data, " "))
 		}
-		return ctx.emit(data)
+		return ctx.emit(recoveryRe.ReplaceAllString(data, ""))
 
 	case html.ElementNode:
 		return ctx.handleElement(node)
