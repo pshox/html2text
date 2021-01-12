@@ -110,7 +110,7 @@ func FromString(input string, options ...Options) (string, error) {
 var (
 	spacingRe  = regexp.MustCompile(`[ \r\n\t]+`)
 	newlineRe  = regexp.MustCompile(`\n\n+`)
-	recoveryRe = regexp.MustCompile(`[!^<p>|</p>]`)
+	recoveryRe = regexp.MustCompile(`(<\w+>|<\/\w+>)`)
 )
 
 // traverseTableCtx holds text-related context.
